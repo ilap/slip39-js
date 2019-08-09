@@ -1,0 +1,9 @@
+._*
+.DS_Store
+.npmrc
+.lock-wscript
+.eslintrc.js        
+jsbeautifyrc        
+jsconfig.json  
+.vscode/**/*
+scripts/**/*
