@@ -1,4 +1,4 @@
-const slip39 = require('./src/slip39.js');
+const slip39 = require('../src/slip39.js');
 const assert = require('assert');
 // threshold (N) number of group shares required to reconstruct the master secret.
 const threshold = 2;
@@ -23,8 +23,7 @@ const groups = [
   [2, 6]
 ];
 
-const slip = slip39.fromArray({
-  masterSecret: masterSecret,
+const slip = slip39.fromArray(masterSecret, {
   passphrase: passphrase,
   threshold: threshold,
   groups: groups
