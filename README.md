@@ -1,4 +1,4 @@
-# SLIP39-JS
+# SLIP39
 
 [![npm](https://img.shields.io/npm/v/slip39.svg)](https://www.npmjs.org/package/slip39)
 

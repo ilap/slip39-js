@@ -1,5 +1,5 @@
 {
-  "name": "slip39-js",
+  "name": "slip39",
   "version": "0.1.0",
   "description": "The javascript implementation of the SLIP39 for Shamir's Secret-Sharing for Mnemonic Codes.",
   "main": "main.js",
