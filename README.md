@@ -37,7 +37,7 @@ The group's first parameter is the `N` (group threshold) while the second is the
 ## Installing
 
 ``` 
-npm install slip39-js
+npm install slip39
 
 ```
 
