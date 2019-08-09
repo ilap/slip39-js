@@ -95,3 +95,4 @@ typings/
 .DS_Store
 .npmrc
 .lock-wscript
+package-lock.json*
