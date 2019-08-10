@@ -87,6 +87,19 @@ Array.prototype.generate = function (n, v) {
   return this;
 };
 
+Array.prototype.toHexString = function () {
+  return Array.prototype.map.call(this, function (byte) {
+    return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+  }).join('');
+};
+
+Array.prototype.toByteArray = function (hexString) {
+  for (let i = 0; i < hexString.length; i = i + 2) {
+    this.push(parseInt(hexString.substr(i, 2), 16));
+  }
+  return this;
+};
+
 const BIGINT_WORD_BITS = BigInt(8);
 
 function decodeBigInt(bytes) {
@@ -98,7 +111,7 @@ function decodeBigInt(bytes) {
   return result;
 }
 
-function encodeBigInt(number) {
+function encodeBigInt(number, length = 0) {
   let num = number;
   const BYTE_MASK = BigInt(0xff);
   const BIGINT_ZERO = BigInt(0);
@@ -109,6 +122,12 @@ function encodeBigInt(number) {
     result.unshift(i);
     num = num >> BIGINT_WORD_BITS;
   }
+
+  // Zero padding to the length
+  for (let i = result.length; i < length; i++) {
+    result.unshift(0);
+  }
+
   return result;
 }
 
@@ -548,7 +567,8 @@ function decodeMnemonic(mnemonic) {
   const valueInt = intFromIndices(valueData);
 
   try {
-    const share = encodeBigInt(valueInt);
+    const valueByteCount = bitsToBytes(RADIX_BITS * valueData.length - paddingLen);
+    const share = encodeBigInt(valueInt, valueByteCount);
 
     return {
       identifier: identifier,

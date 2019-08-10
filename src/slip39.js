@@ -177,7 +177,4 @@ class Slip39 {
   }
 }
 
-exports = module.exports = {
-  Slip39,
-  Slip39Node
-};
+exports = module.exports = Slip39;

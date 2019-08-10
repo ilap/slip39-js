@@ -1,5 +1,5 @@
 const assert = require('assert');
-const slip39 = require('../src/slip39').Slip39;
+const slip39 = require('../src/slip39');
 
 const MS = 'ABCDEFGHIJKLMNOP'.encodeHex();
 const PASSPHRASE = 'TREZOR';
