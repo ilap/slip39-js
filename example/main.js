@@ -14,7 +14,7 @@ const passphrase = 'TREZOR';
  */
 const groups = [
   // Alice group shares. 1 is enough to reconstruct a group share,
-  // therefore she needs at least two group shares to be reconstructed,
+  // therefore she needs at least two group shares to reconstruct the master secret.
   [1, 1],
   [1, 1],
   // 3 of 5 Friends' shares are required to reconstruct this group share

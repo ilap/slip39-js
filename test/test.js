@@ -1,9 +1,11 @@
 const assert = require('assert');
-const slip39 = require('../src/slip39');
+const slip39 = require('../src/slip39').Slip39;
 
 const MS = 'ABCDEFGHIJKLMNOP'.encodeHex();
 const PASSPHRASE = 'TREZOR';
-const ONE_GROUP = [[5, 7]];
+const ONE_GROUP = [
+  [5, 7]
+];
 
 const slip15 = slip39.fromArray(MS, {
   passphrase: PASSPHRASE,
@@ -110,9 +112,9 @@ describe('Basic Tests', () => {
 });
 
 // FIXME: finish it.
-describe('Group Shares Tests', () => {
+describe('Group Sharing Tests', () => {
   describe('Test all valid combinations of mnemonics', () => {
-    /* const groups = [
+    const groups = [
       [3, 5],
       [3, 3],
       [2, 5],
@@ -122,82 +124,94 @@ describe('Group Shares Tests', () => {
       threshold: 2,
       groups: groups
     });
-*/
-    it('should return the valid mastersecret when valid mnemonics used for recovery', () => {
-      // const root = slip.fromPath('r').mnemonics;
+
+    const group2Mnemonics = slip.fromPath('r/2').mnemonics;
+    const group3Mnemonic = slip.fromPath('r/3').mnemonics[0];
+
+    it('Should return the valid master secret when it tested with minimal sets of mnemonics.', () => {
+      const mnemonics = group2Mnemonics.filter((_, index) => {
+        return index === 0 || index === 2;
+      }).concat(group3Mnemonic);
+
+      assert(MS.decodeHex() === slip39.recoverSecret(mnemonics).decodeHex());
+    });
+    it('TODO: Should NOT return the valid master secret when one complete group and one incomplete group out of two groups required', () => {
+      assert(true);
+    });
+    it('TODO: Should return the valid master secret when one group of two required but only one applied.', () => {
       assert(true);
     });
   });
+});
 
-  describe('Original test vectors Tests', () => {
-    let fs = require('fs');
-    let path = require('path');
-    let filePath = path.join(__dirname, 'vectors.json');
+describe('Original test vectors Tests', () => {
+  let fs = require('fs');
+  let path = require('path');
+  let filePath = path.join(__dirname, 'vectors.json');
 
-    let content = fs.readFileSync(filePath, 'utf-8');
+  let content = fs.readFileSync(filePath, 'utf-8');
 
-    const tests = JSON.parse(content);
-    tests.forEach((item) => {
-      let description = item[0];
-      let mnemonics = item[1];
-      let masterSecret = Buffer.from(item[2], 'hex');
+  const tests = JSON.parse(content);
+  tests.forEach((item) => {
+    let description = item[0];
+    let mnemonics = item[1];
+    let masterSecret = Buffer.from(item[2], 'hex');
 
-      it(description, () => {
-        if (masterSecret.length !== 0) {
-          let ms = slip39.recoverSecret(mnemonics, PASSPHRASE);
-          assert(masterSecret.every((v, i) => v === ms[i]));
-        } else {
-          assert.throws(() => slip39.recoverSecret(mnemonics, PASSPHRASE), Error);
-        }
-      });
+    it(description, () => {
+      if (masterSecret.length !== 0) {
+        let ms = slip39.recoverSecret(mnemonics, PASSPHRASE);
+        assert(masterSecret.every((v, i) => v === ms[i]));
+      } else {
+        assert.throws(() => slip39.recoverSecret(mnemonics, PASSPHRASE), Error);
+      }
     });
   });
+});
 
-  describe('Invalid Shares', () => {
-    const tests = [
-      ['Short master secret', 1, [
-        [2, 3]
-      ], MS.slice(0, 14)],
-      ['Odd length master secret', 1, [
-        [2, 3]
-      ], MS.concat([55])],
-      ['Group threshold exceeds number of groups', 3, [
-        [3, 5],
-        [2, 5]
-      ], MS],
-      ['Invalid group threshold.', 0, [
-        [3, 5],
-        [2, 5]
-      ], MS],
-      ['Member threshold exceeds number of members', 2, [
-        [3, 2],
-        [2, 5]
-      ], MS],
-      ['Invalid member threshold', 2, [
-        [0, 2],
-        [2, 5]
-      ], MS],
-      ['Group with multiple members and threshold 1', 2, [
-        [3, 5],
-        [1, 3],
-        [2, 5]
-      ], MS]
-    ];
+describe('Invalid Shares', () => {
+  const tests = [
+    ['Short master secret', 1, [
+      [2, 3]
+    ], MS.slice(0, 14)],
+    ['Odd length master secret', 1, [
+      [2, 3]
+    ], MS.concat([55])],
+    ['Group threshold exceeds number of groups', 3, [
+      [3, 5],
+      [2, 5]
+    ], MS],
+    ['Invalid group threshold.', 0, [
+      [3, 5],
+      [2, 5]
+    ], MS],
+    ['Member threshold exceeds number of members', 2, [
+      [3, 2],
+      [2, 5]
+    ], MS],
+    ['Invalid member threshold', 2, [
+      [0, 2],
+      [2, 5]
+    ], MS],
+    ['Group with multiple members and threshold 1', 2, [
+      [3, 5],
+      [1, 3],
+      [2, 5]
+    ], MS]
+  ];
 
-    tests.forEach((item) => {
-      let description = item[0];
-      let threshold = item[1];
+  tests.forEach((item) => {
+    let description = item[0];
+    let threshold = item[1];
 
-      let groups = item[2];
-      let secret = item[3];
+    let groups = item[2];
+    let secret = item[3];
 
-      it(description, () => {
-        assert.throws(() =>
-          slip39.fromArray(secret, {
-            threshold: threshold,
-            groups: groups
-          }), Error);
-      });
+    it(description, () => {
+      assert.throws(() =>
+        slip39.fromArray(secret, {
+          threshold: threshold,
+          groups: groups
+        }), Error);
     });
   });
 });

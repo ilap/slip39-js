@@ -141,7 +141,7 @@ class Slip39 {
 
     const children = this.parseChildren(path);
 
-    if (children.isEmpty) {
+    if (typeof children === 'undefined' || children.length === 0) {
       return this.root;
     }
 
@@ -177,4 +177,7 @@ class Slip39 {
   }
 }
 
-exports = module.exports = Slip39;
+exports = module.exports = {
+  Slip39,
+  Slip39Node
+};
