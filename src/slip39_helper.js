@@ -5,7 +5,6 @@ try {
 } catch (err) {
   throw new Error('crypto support must be enabled');
 }
-const assert = require('assert');
 
 
 // The length of the radix in bits.
@@ -170,6 +169,7 @@ function crypt(masterSecret, passphrase, iterationExponent,
   if (iterationExponent < 0 || iterationExponent > MAX_ITERATION_EXP) {
     throw Error(`Invalid iteration exponent (${iterationExponent}). Expected between 0 and ${MAX_ITERATION_EXP}`);
   }
+
   let IL = masterSecret.slice().slice(0, masterSecret.length / 2);
   let IR = masterSecret.slice().slice(masterSecret.length / 2);
 
@@ -255,7 +255,9 @@ function generateIdentifier() {
 }
 
 function xor(a, b) {
-  assert(a.length === b.length);
+  if (a.length !== b.length) {
+    throw new Error(`Invalid padding in mnemonic or insufficient length of mnemonics (${a.length} or ${b.length})`);
+  }
   return Array().generate(a.length, (i) => a[i] ^ b[i]);
 }
 
