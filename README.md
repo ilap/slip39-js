@@ -5,7 +5,7 @@
 
 The javascript implementation of the [SLIP39](https://github.com/satoshilabs/slips/blob/master/slip-0039.md) for Shamir's Secret-Sharing for Mnemonic Codes.
 
-The code based on my [Dart implementation of SLIP-0039](https://github.com/ilap/slip39-dar/).
+The code based on my [Dart implementation of SLIP-0039](https://github.com/ilap/slip39-dart/).
 
 # DISCLAIMER
 
