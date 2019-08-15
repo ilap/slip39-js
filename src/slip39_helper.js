@@ -461,7 +461,7 @@ function combineMnemonics(mnemonics, passphrase = '') {
         groupThreshold,
         groupCount
       );
-      throw new Error(`Wrong number of mnemonics. Expected ${groupIndex} mnemonics starting with ${_mnemomicFromIndices(prefix)}, \n but ${members.length} were provided.`);
+      throw new Error(`Wrong number of mnemonics. Expected ${threshold} mnemonics starting with "${mnemomicFromIndices(prefix)}", \n but ${shares.size} were provided.`);
     }
 
     const recovered = recoverSecret(threshold, shares);
