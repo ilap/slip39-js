@@ -19,7 +19,17 @@ const slip15NoPW = slip39.fromArray(MS, {
 });
 
 //
-// Permutations P(n, k) of the grooups
+// Shuffle
+//
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+//
+// Combination C(n, k) of the grooups
 //
 function getCombinations(array, k) {
   let result = [];
@@ -47,7 +57,8 @@ describe('Basic Tests', () => {
 
     let combinations = getCombinations([0, 1, 2, 3, 4, 5, 6], 5);
     combinations.forEach((item) => {
-      let description = `Test combination ${item.join(' ')}.`;
+      shuffle(item);
+      let description = `Test shuffled combination ${item.join(' ')}.`;
       it(description, () => {
         let shares = item.map((idx) => mnemonics[idx]);
         assert(MS.decodeHex() === slip39.recoverSecret(shares, PASSPHRASE)
