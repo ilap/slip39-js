@@ -587,6 +587,16 @@ function decodeMnemonic(mnemonic) {
   }
 }
 
+function validateMnemonic(mnemonic) {
+  try {
+    decodeMnemonic(mnemonic);
+    return true;
+  }
+  catch (error) {
+    return false;
+  }
+}
+
 function groupPrefix(
   identifier, iterationExponent, groupIndex, groupThreshold, groupCount) {
   const idExpInt = BigInt(
@@ -2217,6 +2227,7 @@ exports = module.exports = {
   MIN_ENTROPY_BITS,
   generateIdentifier,
   encodeMnemonic,
+  validateMnemonic,
   splitSecret,
   combineMnemonics,
   crypt
