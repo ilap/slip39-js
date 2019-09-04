@@ -563,7 +563,7 @@ function decodeMnemonic(mnemonic) {
     ITERATION_EXP_WORDS_LENGTH + 2, data.length - CHECKSUM_WORDS_LENGTH);
 
   if (groupCount < groupThreshold) {
-    throw new Error('Invalid mnemonic: ${mnemonic}.\n Group threshold  ($groupThreshold) cannot be greater than group count ($groupCount).');
+    throw new Error(`Invalid mnemonic: ${mnemonic}.\n Group threshold (${groupThreshold}) cannot be greater than group count (${groupCount}).`);
   }
 
   const valueInt = intFromIndices(valueData);
