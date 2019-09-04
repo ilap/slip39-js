@@ -226,3 +226,87 @@ describe('Invalid Shares', () => {
     });
   });
 });
+
+describe('Mnemonic Validation', () => {
+  describe('Valid Mnemonics', () => {
+    let mnemonics = slip15.fromPath('r/0').mnemonics;
+
+    mnemonics.forEach((mnemonic, index) => {
+      it (`Mnemonic at index ${index} should be valid`, () => {
+        const isValid = slip39.validateMnemonic(mnemonic);
+
+        assert(isValid);
+      });
+    });
+  });
+
+  const vectors = [
+    [
+      "2. Mnemonic with invalid checksum (128 bits)",
+      [
+        "duckling enlarge academic academic agency result length solution fridge kidney coal piece deal husband erode duke ajar critical decision kidney"
+      ]
+    ],
+    [
+      "21. Mnemonic with invalid checksum (256 bits)",
+      [
+        "theory painting academic academic armed sweater year military elder discuss acne wildlife boring employer fused large satoshi bundle carbon diagnose anatomy hamster leaves tracks paces beyond phantom capital marvel lips brave detect lunar"
+      ]
+    ],
+    [
+      "3. Mnemonic with invalid padding (128 bits)",
+      [
+        "duckling enlarge academic academic email result length solution fridge kidney coal piece deal husband erode duke ajar music cargo fitness"
+      ]
+    ],
+    [
+      "22. Mnemonic with invalid padding (256 bits)",
+      [
+        "theory painting academic academic campus sweater year military elder discuss acne wildlife boring employer fused large satoshi bundle carbon diagnose anatomy hamster leaves tracks paces beyond phantom capital marvel lips facility obtain sister"
+      ]
+    ],
+    [
+      "10. Mnemonics with greater group threshold than group counts (128 bits)",
+      [
+        "music husband acrobat acid artist finance center either graduate swimming object bike medical clothes station aspect spider maiden bulb welcome",
+        "music husband acrobat agency advance hunting bike corner density careful material civil evil tactics remind hawk discuss hobo voice rainbow",
+        "music husband beard academic black tricycle clock mayor estimate level photo episode exclude ecology papa source amazing salt verify divorce"
+      ]
+    ],
+    [
+      "29. Mnemonics with greater group threshold than group counts (256 bits)",
+      [
+        "smirk pink acrobat acid auction wireless impulse spine sprinkle fortune clogs elbow guest hush loyalty crush dictate tracks airport talent",
+        "smirk pink acrobat agency dwarf emperor ajar organize legs slice harvest plastic dynamic style mobile float bulb health coding credit",
+        "smirk pink beard academic alto strategy carve shame language rapids ruin smart location spray training acquire eraser endorse submit peaceful"
+      ]
+    ],
+    [
+      "39. Mnemonic with insufficient length",
+      [
+        "junk necklace academic academic acne isolate join hesitate lunar roster dough calcium chemical ladybug amount mobile glasses verify cylinder"
+      ]
+    ],
+    [
+      "40. Mnemonic with invalid master secret length",
+      [
+        "fraction necklace academic academic award teammate mouse regular testify coding building member verdict purchase blind camera duration email prepare spirit quarter"
+      ]
+    ]
+  ];
+
+  vectors.forEach((item) => {
+    const description = item[0];
+    const mnemonics = item[1];
+
+    describe(description, () => {
+      mnemonics.forEach((mnemonic, index) => {
+        it (`Mnemonic at index ${index} should be invalid`, () => {
+          const isValid = slip39.validateMnemonic(mnemonic);
+
+          assert(isValid === false);
+        });
+      });
+    });
+  });
+});
