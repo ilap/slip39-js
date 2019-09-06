@@ -110,7 +110,7 @@ function decodeBigInt(bytes) {
   return result;
 }
 
-function encodeBigInt(number, length = 0) {
+function encodeBigInt(number, paddedLength = 0) {
   let num = number;
   const BYTE_MASK = BigInt(0xff);
   const BIGINT_ZERO = BigInt(0);
@@ -123,8 +123,12 @@ function encodeBigInt(number, length = 0) {
   }
 
   // Zero padding to the length
-  for (let i = result.length; i < length; i++) {
+  for (let i = result.length; i < paddedLength; i++) {
     result.unshift(0);
+  }
+
+  if (paddedLength !== 0 && result.length > paddedLength) {
+    throw new Error(`Error in encoding BigInt value, expected less than ${paddedLength} length value, got ${result.length}`);
   }
 
   return result;
@@ -563,7 +567,7 @@ function decodeMnemonic(mnemonic) {
     ITERATION_EXP_WORDS_LENGTH + 2, data.length - CHECKSUM_WORDS_LENGTH);
 
   if (groupCount < groupThreshold) {
-    throw new Error('Invalid mnemonic: ${mnemonic}.\n Group threshold  ($groupThreshold) cannot be greater than group count ($groupCount).');
+    throw new Error(`Invalid mnemonic: ${mnemonic}.\n Group threshold (${groupThreshold}) cannot be greater than group count (${groupCount}).`);
   }
 
   const valueInt = intFromIndices(valueData);
@@ -584,6 +588,16 @@ function decodeMnemonic(mnemonic) {
     };
   } catch (e) {
     throw new Error(`Invalid mnemonic padding (${e})`);
+  }
+}
+
+function validateMnemonic(mnemonic) {
+  try {
+    decodeMnemonic(mnemonic);
+    return true;
+  }
+  catch (error) {
+    return false;
   }
 }
 
@@ -2217,6 +2231,7 @@ exports = module.exports = {
   MIN_ENTROPY_BITS,
   generateIdentifier,
   encodeMnemonic,
+  validateMnemonic,
   splitSecret,
   combineMnemonics,
   crypt

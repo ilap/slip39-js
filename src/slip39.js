@@ -136,6 +136,10 @@ class Slip39 {
     return slipHelper.combineMnemonics(mnemonics, passphrase);
   }
 
+  static validateMnemonic(mnemonic) {
+    return slipHelper.validateMnemonic(mnemonic);
+  }
+
   fromPath(path) {
     this.validatePath(path);
 
