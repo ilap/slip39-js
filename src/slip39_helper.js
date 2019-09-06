@@ -128,7 +128,7 @@ function encodeBigInt(number, paddedLength = 0) {
   }
 
   if (paddedLength !== 0 && result.length > paddedLength) {
-    throw new Error(`Error in ecoding BigInt value, expected less than ${paddedLength} length value, got ${result.length}`);
+    throw new Error(`Error in encoding BigInt value, expected less than ${paddedLength} length value, got ${result.length}`);
   }
 
   return result;
