@@ -446,11 +446,11 @@ function combineMnemonics(mnemonics, passphrase = '') {
   const groups = decoded.groups;
 
   if (groups.size < groupThreshold) {
-    throw new Error('Insufficient number of mnemonic groups (${groups.length}). The required number of groups is $groupThreshold.');
+    throw new Error(`Insufficient number of mnemonic groups (${groups.length}). The required number of groups is ${groupThreshold}.`);
   }
 
   if (groups.size !== groupThreshold) {
-    throw new Error('Wrong number of mnemonic groups. Expected $groupThreshold groups, but ${groups.length} were provided.');
+    throw new Error(`Wrong number of mnemonic groups. Expected $groupThreshold groups, but ${groups.length} were provided.`);
   }
 
   let allShares = new Map();
@@ -509,7 +509,7 @@ function decodeMnemonics(mnemonics) {
   });
 
   if (identifiers.size !== 1 || iterationExponents.size !== 1) {
-    throw new Error('Invalid set of mnemonics. All mnemonics must begin with the same ($ITERATION_EXP_WORDS_LENGTH) words.');
+    throw new Error(`Invalid set of mnemonics. All mnemonics must begin with the same ${ITERATION_EXP_WORDS_LENGTH} words.`);
   }
 
   if (groupThresholds.size !== 1) {
