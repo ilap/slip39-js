@@ -399,15 +399,14 @@ function mnemonicFromIndices(indices) {
 
 function mnemonicToIndices(mnemonic) {
   const words = mnemonic.toLowerCase().split(' ');
-  try {
-    const result = words.reduce((prev, item) => {
-      const index = WORD_LIST_MAP[item];
-      return prev.concat(index);
-    }, []);
-    return result;
-  } catch (e) {
-    throw new Error(`Invalid mnemonic word ${e}.`);
-  }
+  const result = words.reduce((prev, item) => {
+    const index = WORD_LIST_MAP[item];
+    if (typeof index === 'undefined') {
+      throw new Error(`Invalid mnemonic word ${item}.`);
+    }
+    return prev.concat(index);
+  }, []);
+  return result;
 }
 
 function recoverSecret(threshold, shares) {
