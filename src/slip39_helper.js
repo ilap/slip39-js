@@ -2234,5 +2234,6 @@ exports = module.exports = {
   validateMnemonic,
   splitSecret,
   combineMnemonics,
-  crypt
+  crypt,
+  bitsToBytes
 };

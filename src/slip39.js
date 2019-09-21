@@ -50,7 +50,7 @@ class Slip39 {
     iterationExponent = 0
   } = {}) {
     if (masterSecret.length * 8 < slipHelper.MIN_ENTROPY_BITS) {
-      throw Error(`The length of the master secret (${masterSecret.length} bytes) must be at least ${bitsToBytes(MIN_STRENGTH_BITS)} bytes.`);
+      throw Error(`The length of the master secret (${masterSecret.length} bytes) must be at least ${slipHelper.bitsToBytes(slipHelper.MIN_ENTROPY_BITS)} bytes.`);
     }
 
     if (masterSecret.length % 2 !== 0) {
