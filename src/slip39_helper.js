@@ -390,7 +390,7 @@ function intToIndices(value, length, bits) {
   return result.reverse();
 }
 
-function mnemomicFromIndices(indices) {
+function mnemonicFromIndices(indices) {
   const result = indices.map((index) => {
     return WORD_LIST[index];
   });
@@ -465,7 +465,7 @@ function combineMnemonics(mnemonics, passphrase = '') {
         groupThreshold,
         groupCount
       );
-      throw new Error(`Wrong number of mnemonics. Expected ${threshold} mnemonics starting with "${mnemomicFromIndices(prefix)}", \n but ${shares.size} were provided.`);
+      throw new Error(`Wrong number of mnemonics. Expected ${threshold} mnemonics starting with "${mnemonicFromIndices(prefix)}", \n but ${shares.size} were provided.`);
     }
 
     const recovered = recoverSecret(threshold, shares);
@@ -658,7 +658,7 @@ function encodeMnemonic(
 
   const checksum = rs1024CreateChecksum(shareData);
 
-  return mnemomicFromIndices(shareData.concat(checksum));
+  return mnemonicFromIndices(shareData.concat(checksum));
 }
 
 // The precomputed exponent and log tables.
