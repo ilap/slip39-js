@@ -152,7 +152,7 @@ class Slip39 {
     return children.reduce((prev, childNumber) => {
       let childrenLen = prev.children.length;
       if (childNumber >= childrenLen) {
-        throw new Error(`The path index ($childNumber) exceeds the children index (${childrenLen - 1}).`);
+        throw new Error(`The path index (${childNumber}) exceeds the children index (${childrenLen - 1}).`);
       }
 
       return prev.children[childNumber];
