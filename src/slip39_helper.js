@@ -398,6 +398,10 @@ function mnemonicFromIndices(indices) {
 }
 
 function mnemonicToIndices(mnemonic) {
+  if (typeof mnemonic !== 'string') {
+    throw new Error(`Mnemonic expected to be typeof string with white space separated words. Instead found typeof ${typeof mnemonic}.`);
+  }
+
   const words = mnemonic.toLowerCase().split(' ');
   const result = words.reduce((prev, item) => {
     const index = WORD_LIST_MAP[item];
@@ -479,6 +483,9 @@ function combineMnemonics(mnemonics, passphrase = '') {
 }
 
 function decodeMnemonics(mnemonics) {
+  if (!(mnemonics instanceof Array)) {
+    throw new Error('Mnemonics should be an array of strings');
+  }
   const identifiers = new Set();
   const iterationExponents = new Set();
   const groupThresholds = new Set();
@@ -594,8 +601,7 @@ function validateMnemonic(mnemonic) {
   try {
     decodeMnemonic(mnemonic);
     return true;
-  }
-  catch (error) {
+  } catch (error) {
     return false;
   }
 }
