@@ -6,3 +6,11 @@ v0.1.1
 
 v0.1.2
 * Added length to  encodeBigInt()
+
+v0.1.5-dev.1
+* Bumped version, changed versioning format 
+
+v0.1.5
+* Bumped version
+* Added nodejs.yml
+* Merge pull requests from different contributors
