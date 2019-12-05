@@ -310,3 +310,42 @@ describe('Mnemonic Validation', () => {
     });
   });
 });
+
+// See https://github.com/satoshilabs/slips/blob/master/slip-0039.md#notation
+// particularly the table rows:
+// "total number of groups, a positive integer, 1 ≤ G ≤ 16"
+// "group threshold, a positive integer, 1 ≤ GT ≤ G"
+// This test also fails for 15-of-16, 15-of-15, but passes for all other combos
+describe('Maximum number of shares ie 16-of-16', () => {
+  // generate the shares
+  let masterSecretHex = "d2b5e45b2934281a118ece2ae498514d";
+  let masterSecretBuff = Buffer.from(masterSecretHex, 'hex');
+  let masterSecret = [];
+  for (i = 0; i<masterSecretBuff.length; i++) {
+      masterSecret.push(masterSecretBuff[i]);
+  }
+  let passphrase = "TREZOR";
+  let totalGroups = 16;
+  let threshold = 16;
+  let groups = [];
+  for (i = 0; i < totalGroups; i++) {
+      groups.push([1,1]);
+  }
+  const slip = slip39.fromArray(masterSecret, {
+    passphrase: passphrase,
+    threshold: threshold,
+    groups: groups,
+  });
+  // extract the required number of mnemonics for recovery
+  let mnemonics = [];
+  for (i = 0; i < threshold; i++) {
+    let mnemonic = slip.fromPath('r/' + i).mnemonics[0];
+    console.log(mnemonic);
+    mnemonics.push(mnemonic);
+  }
+  // check the mnemonics recover to the original master secret
+  it("Recovers master secret when there are 16-of-16 shares", () => {
+    let ms = slip39.recoverSecret(mnemonics, passphrase);
+    assert(masterSecret.every((v, i) => v === ms[i]));
+  });
+});
