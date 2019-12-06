@@ -14,3 +14,7 @@ v0.1.5
 * Bumped version
 * Added nodejs.yml
 * Merge pull requests from different contributors
+
+v0.1.6
+* Fixed ilap/slip39-js#12
+* Some cosmetic fixes

@@ -307,9 +307,9 @@ function interpolate(shares, x) {
 
     // FIXME: -18 % 255 = 237. IT shoulud be 237 and not -18 as it's
     // implemented in javascript.
-    const basis = logProd - LOG_TABLE[k ^ x] - sum;
+    const basis = (logProd - LOG_TABLE[k ^ x] - sum) % 255;
 
-    const logBasisEval = basis < 0 ? 255 + basis : basis % 255;
+    const logBasisEval = basis < 0 ? 255 + basis : basis;
 
     v.forEach((item, idx) => {
       const shareVal = item;

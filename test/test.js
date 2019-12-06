@@ -1,7 +1,8 @@
 const assert = require('assert');
 const slip39 = require('../src/slip39');
 
-const MS = 'ABCDEFGHIJKLMNOP'.encodeHex();
+const MASTERSECRET = 'ABCDEFGHIJKLMNOP';
+const MS = MASTERSECRET.encodeHex();
 const PASSPHRASE = 'TREZOR';
 const ONE_GROUP = [
   [5, 7]
@@ -232,7 +233,7 @@ describe('Mnemonic Validation', () => {
     let mnemonics = slip15.fromPath('r/0').mnemonics;
 
     mnemonics.forEach((mnemonic, index) => {
-      it (`Mnemonic at index ${index} should be valid`, () => {
+      it(`Mnemonic at index ${index} should be valid`, () => {
         const isValid = slip39.validateMnemonic(mnemonic);
 
         assert(isValid);
@@ -242,55 +243,55 @@ describe('Mnemonic Validation', () => {
 
   const vectors = [
     [
-      "2. Mnemonic with invalid checksum (128 bits)",
+      '2. Mnemonic with invalid checksum (128 bits)',
       [
-        "duckling enlarge academic academic agency result length solution fridge kidney coal piece deal husband erode duke ajar critical decision kidney"
+        'duckling enlarge academic academic agency result length solution fridge kidney coal piece deal husband erode duke ajar critical decision kidney'
       ]
     ],
     [
-      "21. Mnemonic with invalid checksum (256 bits)",
+      '21. Mnemonic with invalid checksum (256 bits)',
       [
-        "theory painting academic academic armed sweater year military elder discuss acne wildlife boring employer fused large satoshi bundle carbon diagnose anatomy hamster leaves tracks paces beyond phantom capital marvel lips brave detect lunar"
+        'theory painting academic academic armed sweater year military elder discuss acne wildlife boring employer fused large satoshi bundle carbon diagnose anatomy hamster leaves tracks paces beyond phantom capital marvel lips brave detect lunar'
       ]
     ],
     [
-      "3. Mnemonic with invalid padding (128 bits)",
+      '3. Mnemonic with invalid padding (128 bits)',
       [
-        "duckling enlarge academic academic email result length solution fridge kidney coal piece deal husband erode duke ajar music cargo fitness"
+        'duckling enlarge academic academic email result length solution fridge kidney coal piece deal husband erode duke ajar music cargo fitness'
       ]
     ],
     [
-      "22. Mnemonic with invalid padding (256 bits)",
+      '22. Mnemonic with invalid padding (256 bits)',
       [
-        "theory painting academic academic campus sweater year military elder discuss acne wildlife boring employer fused large satoshi bundle carbon diagnose anatomy hamster leaves tracks paces beyond phantom capital marvel lips facility obtain sister"
+        'theory painting academic academic campus sweater year military elder discuss acne wildlife boring employer fused large satoshi bundle carbon diagnose anatomy hamster leaves tracks paces beyond phantom capital marvel lips facility obtain sister'
       ]
     ],
     [
-      "10. Mnemonics with greater group threshold than group counts (128 bits)",
+      '10. Mnemonics with greater group threshold than group counts (128 bits)',
       [
-        "music husband acrobat acid artist finance center either graduate swimming object bike medical clothes station aspect spider maiden bulb welcome",
-        "music husband acrobat agency advance hunting bike corner density careful material civil evil tactics remind hawk discuss hobo voice rainbow",
-        "music husband beard academic black tricycle clock mayor estimate level photo episode exclude ecology papa source amazing salt verify divorce"
+        'music husband acrobat acid artist finance center either graduate swimming object bike medical clothes station aspect spider maiden bulb welcome',
+        'music husband acrobat agency advance hunting bike corner density careful material civil evil tactics remind hawk discuss hobo voice rainbow',
+        'music husband beard academic black tricycle clock mayor estimate level photo episode exclude ecology papa source amazing salt verify divorce'
       ]
     ],
     [
-      "29. Mnemonics with greater group threshold than group counts (256 bits)",
+      '29. Mnemonics with greater group threshold than group counts (256 bits)',
       [
-        "smirk pink acrobat acid auction wireless impulse spine sprinkle fortune clogs elbow guest hush loyalty crush dictate tracks airport talent",
-        "smirk pink acrobat agency dwarf emperor ajar organize legs slice harvest plastic dynamic style mobile float bulb health coding credit",
-        "smirk pink beard academic alto strategy carve shame language rapids ruin smart location spray training acquire eraser endorse submit peaceful"
+        'smirk pink acrobat acid auction wireless impulse spine sprinkle fortune clogs elbow guest hush loyalty crush dictate tracks airport talent',
+        'smirk pink acrobat agency dwarf emperor ajar organize legs slice harvest plastic dynamic style mobile float bulb health coding credit',
+        'smirk pink beard academic alto strategy carve shame language rapids ruin smart location spray training acquire eraser endorse submit peaceful'
       ]
     ],
     [
-      "39. Mnemonic with insufficient length",
+      '39. Mnemonic with insufficient length',
       [
-        "junk necklace academic academic acne isolate join hesitate lunar roster dough calcium chemical ladybug amount mobile glasses verify cylinder"
+        'junk necklace academic academic acne isolate join hesitate lunar roster dough calcium chemical ladybug amount mobile glasses verify cylinder'
       ]
     ],
     [
-      "40. Mnemonic with invalid master secret length",
+      '40. Mnemonic with invalid master secret length',
       [
-        "fraction necklace academic academic award teammate mouse regular testify coding building member verdict purchase blind camera duration email prepare spirit quarter"
+        'fraction necklace academic academic award teammate mouse regular testify coding building member verdict purchase blind camera duration email prepare spirit quarter'
       ]
     ]
   ];
@@ -301,7 +302,7 @@ describe('Mnemonic Validation', () => {
 
     describe(description, () => {
       mnemonics.forEach((mnemonic, index) => {
-        it (`Mnemonic at index ${index} should be invalid`, () => {
+        it(`Mnemonic at index ${index} should be invalid`, () => {
           const isValid = slip39.validateMnemonic(mnemonic);
 
           assert(isValid === false);
@@ -311,41 +312,32 @@ describe('Mnemonic Validation', () => {
   });
 });
 
-// See https://github.com/satoshilabs/slips/blob/master/slip-0039.md#notation
-// particularly the table rows:
-// "total number of groups, a positive integer, 1 ≤ G ≤ 16"
-// "group threshold, a positive integer, 1 ≤ GT ≤ G"
-// This test also fails for 15-of-16, 15-of-15, but passes for all other combos
-describe('Maximum number of shares ie 16-of-16', () => {
-  // generate the shares
-  let masterSecretHex = "d2b5e45b2934281a118ece2ae498514d";
-  let masterSecretBuff = Buffer.from(masterSecretHex, 'hex');
-  let masterSecret = [];
-  for (i = 0; i<masterSecretBuff.length; i++) {
-      masterSecret.push(masterSecretBuff[i]);
-  }
-  let passphrase = "TREZOR";
+function itTestArray(t, g, gs) {
+  it(
+    `recover master secret for ${t} shares (threshold=${t}) of ${g} '[1, 1,]' groups",`,
+    () => {
+      let slip = slip39.fromArray(MS, {
+        groups: gs.slice(0, g),
+        passphrase: PASSPHRASE,
+        threshold: t
+      });
+
+      let mnemonics = slip.fromPath('r').mnemonics.slice(0, t);
+
+      let recoveredSecret =
+        slip39.recoverSecret(mnemonics, PASSPHRASE);
+
+      assert(MASTERSECRET === String.fromCharCode(...recoveredSecret));
+    });
+}
+
+describe('Groups test (T=1, N=1 e.g. [1,1]) - ', () => {
   let totalGroups = 16;
-  let threshold = 16;
-  let groups = [];
-  for (i = 0; i < totalGroups; i++) {
-      groups.push([1,1]);
+  let groups = Array.from(Array(totalGroups), () => [1, 1]);
+
+  for (group = 1; group <= totalGroups; group++) {
+    for (threshold = 1; threshold <= group; threshold++) {
+      itTestArray(threshold, group, groups);
+    }
   }
-  const slip = slip39.fromArray(masterSecret, {
-    passphrase: passphrase,
-    threshold: threshold,
-    groups: groups,
-  });
-  // extract the required number of mnemonics for recovery
-  let mnemonics = [];
-  for (i = 0; i < threshold; i++) {
-    let mnemonic = slip.fromPath('r/' + i).mnemonics[0];
-    console.log(mnemonic);
-    mnemonics.push(mnemonic);
-  }
-  // check the mnemonics recover to the original master secret
-  it("Recovers master secret when there are 16-of-16 shares", () => {
-    let ms = slip39.recoverSecret(mnemonics, passphrase);
-    assert(masterSecret.every((v, i) => v === ms[i]));
-  });
 });
