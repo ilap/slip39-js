@@ -13,7 +13,7 @@ function recover(groupShares, pass) {
 }
 
 function printShares(shares) {
-  neededShares.forEach((s, i) => console.log(`\t${i + 1}) ${s}`));
+  shares.forEach((s, i) => console.log(`\t${i + 1}) ${s}`));
 }
 
 /**
