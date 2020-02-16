@@ -61,7 +61,7 @@ const SECRET_INDEX = 255;
 //
 // Helper functions for SLIP39 implementation.
 //
-String.prototype.encodeHex = function () {
+String.prototype.slip39EncodeHex = function () {
   let bytes = [];
   for (let i = 0; i < this.length; ++i) {
     bytes.push(this.charCodeAt(i));
@@ -69,7 +69,7 @@ String.prototype.encodeHex = function () {
   return bytes;
 };
 
-Array.prototype.decodeHex = function () {
+Array.prototype.slip39DecodeHex = function () {
   let str = [];
   const hex = this.toString().split(',');
   for (let i = 0; i < hex.length; i++) {
@@ -78,10 +78,10 @@ Array.prototype.decodeHex = function () {
   return str.toString().replace(/,/g, '');
 };
 
-Array.prototype.generate = function (n, v) {
-  let m = n || this.length;
-  for (let i = 0; i < m; i++) {
-    this[i] = typeof v === 'undefined' ? i : v(i);
+Array.prototype.slip39Generate = function (m, v = _ => _) {
+  let n = m || this.length;
+  for (let i = 0; i < n; i++) {
+    this[i] = v(i);
   }
   return this;
 };
@@ -177,11 +177,11 @@ function crypt(masterSecret, passphrase, iterationExponent,
   let IL = masterSecret.slice().slice(0, masterSecret.length / 2);
   let IR = masterSecret.slice().slice(masterSecret.length / 2);
 
-  const pwd = passphrase.encodeHex();
+  const pwd = passphrase.slip39EncodeHex();
 
   const salt = getSalt(identifier);
 
-  let range = Array().generate(ROUND_COUNT);
+  let range = Array().slip39Generate(ROUND_COUNT);
   range = encrypt ? range : range.reverse();
 
   range.forEach((round) => {
@@ -217,7 +217,7 @@ function splitSecret(threshold, shareCount, sharedSecret) {
   }
   //  If the threshold is 1, then the digest of the shared secret is not used.
   if (threshold === 1) {
-    return Array().generate(shareCount, () => sharedSecret);
+    return Array().slip39Generate(shareCount, () => sharedSecret);
   }
 
   const randomShareCount = threshold - 2;
@@ -228,7 +228,7 @@ function splitSecret(threshold, shareCount, sharedSecret) {
   let baseShares = new Map();
   let shares = [];
   if (randomShareCount) {
-    shares = Array().generate(
+    shares = Array().slip39Generate(
       randomShareCount, () => randomBytes(sharedSecret.length));
     shares.forEach((item, idx) => {
       baseShares.set(idx, item);
@@ -262,11 +262,11 @@ function xor(a, b) {
   if (a.length !== b.length) {
     throw new Error(`Invalid padding in mnemonic or insufficient length of mnemonics (${a.length} or ${b.length})`);
   }
-  return Array().generate(a.length, (i) => a[i] ^ b[i]);
+  return Array().slip39Generate(a.length, (i) => a[i] ^ b[i]);
 }
 
 function getSalt(identifier) {
-  const salt = SALT_STRING.encodeHex();
+  const salt = SALT_STRING.slip39EncodeHex();
   return salt.concat(identifier);
 }
 
@@ -296,7 +296,7 @@ function interpolate(shares, x) {
     logProd = logProd + LOG_TABLE[k ^ x];
   });
 
-  let results = Array().generate(sharesValueLengths.values().next().value, () => 0);
+  let results = Array().slip39Generate(sharesValueLengths.values().next().value, () => 0);
 
   shares.forEach((v, k) => {
     // The logarithm of the Lagrange basis polynomial evaluated at x.
@@ -353,18 +353,18 @@ function rs1024Polymod(data) {
 }
 
 function rs1024CreateChecksum(data) {
-  const values = SALT_STRING.encodeHex()
+  const values = SALT_STRING.slip39EncodeHex()
     .concat(data)
-    .concat(Array().generate(CHECKSUM_WORDS_LENGTH, () => 0));
+    .concat(Array().slip39Generate(CHECKSUM_WORDS_LENGTH, () => 0));
   const polymod = rs1024Polymod(values) ^ 1;
   const result =
-    Array().generate(CHECKSUM_WORDS_LENGTH, (i) => polymod >> 10 * i & 1023).reverse();
+    Array().slip39Generate(CHECKSUM_WORDS_LENGTH, (i) => polymod >> 10 * i & 1023).reverse();
 
   return result;
 }
 
 function rs1024VerifyChecksum(data) {
-  return rs1024Polymod(SALT_STRING.encodeHex().concat(data)) === 1;
+  return rs1024Polymod(SALT_STRING.slip39EncodeHex().concat(data)) === 1;
 }
 
 //
@@ -386,7 +386,7 @@ function intFromIndices(indices) {
 function intToIndices(value, length, bits) {
   const mask = BigInt((1 << bits) - 1);
   const result =
-    Array().generate(length, (i) => parseInt(value >> BigInt(i) * BigInt(bits) & mask, 10));
+    Array().slip39Generate(length, (i) => parseInt(value >> BigInt(i) * BigInt(bits) & mask, 10));
   return result.reverse();
 }
 

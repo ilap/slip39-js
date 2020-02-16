@@ -19,13 +19,13 @@ This project is still in early development phase. Use it at your own risk.
  which means that max d^(l-1), i.e. 16^2, leaf nodes (M) can be in a complete tree (or forest).
 
  The first level (l=1) node of the tree is the the root (R), the level 2 ones are the `SSS` groups (Gs or group nodes) e.g. `[G0, ..., Gd]`.
- 
+
  The last, the third, level nodes are the only leafs (M, group members) which contains the generated mnemonics.
- 
+
  Every node has two values:
-  - the N and 
+  - the N and
   - M i.e. n(N,M).
- 
+
  Whihc means, that N (`threshold`) number of M children are required to reconstruct the node's secret.
 
 ## Format
@@ -36,7 +36,7 @@ The group's first parameter is the `N` (group threshold) while the second is the
 
 ## Installing
 
-``` 
+```
 npm install slip39
 
 ```
@@ -49,7 +49,7 @@ const slip39 = require('../src/slip39.js');
 const assert = require('assert');
 // threshold (N) number of group shares required to reconstruct the master secret.
 const threshold = 2;
-const masterSecret = 'ABCDEFGHIJKLMNOP'.encodeHex();
+const masterSecret = 'ABCDEFGHIJKLMNOP'.slip39EncodeHex();
 const passphrase = 'TREZOR';
 
 /**
@@ -90,9 +90,9 @@ console.log('Shares used for restoring the master secret:');
 allShares.forEach((s) => console.log(s));
 
 const recoveredSecret = slip39.recoverSecret(allShares, passphrase);
-console.log('Master secret: ' + masterSecret.decodeHex());
-console.log('Recovered one: ' + recoveredSecret.decodeHex());
-assert(masterSecret.decodeHex() === recoveredSecret.decodeHex());
+console.log('Master secret: ' + masterSecret.slip39DecodeHex());
+console.log('Recovered one: ' + recoveredSecret.slip39DecodeHex());
+assert(masterSecret.slip39DecodeHex() === recoveredSecret.slip39DecodeHex());
 ```
 
 ## Testing
@@ -198,7 +198,7 @@ assert(masterSecret.decodeHex() === recoveredSecret.decodeHex());
 - [ ] Add `JSON` representation, see [JSON representation](#json-representation) below.
 - [ ] Refactor to much simpler code.
 
-### JSON Representation 
+### JSON Representation
 
 ``` json
   {
