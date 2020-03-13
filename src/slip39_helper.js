@@ -282,7 +282,7 @@ function interpolate(shares, x) {
   }
 
   if (xCoord.has(x)) {
-    shares.forEach((k, v) => {
+    shares.forEach((v, k) => {
       if (k === x) {
         return v;
       }
