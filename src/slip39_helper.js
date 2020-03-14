@@ -272,9 +272,7 @@ function getSalt(identifier) {
 
 function interpolate(shares, x) {
   let xCoord = new Set(shares.keys());
-  let arr = Array.from(shares.values(), (v) => {
-    v.length;
-  });
+  let arr = Array.from(shares.values(), (v) => v.length);
   let sharesValueLengths = new Set(arr);
 
   if (sharesValueLengths.size !== 1) {
