@@ -1,15 +1,15 @@
 const slip39 = require('../src/slip39.js');
 const assert = require('assert');
 // threshold (N) number of group-shares required to reconstruct the master secret.
-const threshold = 2;
-const masterSecret = 'ABCDEFGHIJKLMNOP'.encodeHex();
+const groupThreshold = 2;
+const masterSecret = 'ABCDEFGHIJKLMNOP'.slip39EncodeHex();
 const passphrase = 'TREZOR';
 
 function recover(groupShares, pass) {
   const recoveredSecret = slip39.recoverSecret(groupShares, pass);
-  console.log('\tMaster secret: ' + masterSecret.decodeHex());
-  console.log('\tRecovered one: ' + recoveredSecret.decodeHex());
-  assert(masterSecret.decodeHex() === recoveredSecret.decodeHex());
+  console.log('\tMaster secret: ' + masterSecret.slip39DecodeHex());
+  console.log('\tRecovered one: ' + recoveredSecret.slip39DecodeHex());
+  assert(masterSecret.slip39DecodeHex() === recoveredSecret.slip39DecodeHex());
 }
 
 function printShares(shares) {
@@ -21,8 +21,10 @@ function printShares(shares) {
  *    = two for Alice
  *    = one for friends and
  *    = one for family members
- * Any two of these four group-shares are required to reconstruct the master secret.
- * All possible master secret recovery combinations; goal is to reconstruct any 2-of-4 group-shares:
+ * Any two (see threshold) of these four group-shares are required to reconstruct the master secret
+ * i.e. to recover the master secret the goal is to reconstruct any 2-of-4 group-shares.
+ * To reconstruct each group share, we need at least N of its M member-shares.
+ * Thus all possible master secret recovery combinations:
  * Case 1) [requires 1 person: Alice] Alice alone with her 1-of-1 member-shares reconstructs both the 1st and 2nd group-shares
  * Case 2) [requires 4 persons: Alice + any 3 of her 5 friends] Alice with her 1-of-1 member-shares reconstructs 1st (or 2nd) group-share + any 3-of-5 friend member-shares reconstruct the 3rd group-share
  * Case 3) [requires 3 persons: Alice + any 2 of her 6 family relatives] Alice with her 1-of-1 member-shares reconstructs 1st (or 2nd) group-share + any 2-of-6 family member-shares reconstruct the 4th group-share
@@ -31,21 +33,22 @@ function printShares(shares) {
 const groups = [
   // Alice group-shares. 1 is enough to reconstruct a group-share,
   // therefore she needs at least two group-shares to reconstruct the master secret.
-  [1, 1],
-  [1, 1],
+  [1, 1, 'Alice personal group share 1'],
+  [1, 1, 'Alice personal group share 2'],
   // 3 of 5 Friends' shares are required to reconstruct this group-share
-  [3, 5],
+  [3, 5, 'Friends group share for Bob, Charlie, Dave, Frank and Grace'],
   // 2 of 6 Family's shares are required to reconstruct this group-share
-  [2, 6]
+  [2, 6, 'Family group share for mom, dad, brother, sister and wife']
 ];
 
 const slip = slip39.fromArray(masterSecret, {
   passphrase: passphrase,
-  threshold: threshold,
-  groups: groups
+  threshold: groupThreshold,
+  groups: groups,
+  title: 'Slip39 example for 2-level SSSS'
 });
 
-let neededShares;
+let requiredGroupShares;
 let aliceBothGroupShares;
 let aliceFirstGroupShare;
 let aliceSecondGroupShare;
@@ -60,11 +63,11 @@ let familyGroupShares;
 aliceBothGroupShares = slip.fromPath('r/0/0').mnemonics
   .concat(slip.fromPath('r/1/0').mnemonics);
 
-neededShares = aliceBothGroupShares;
+requiredGroupShares = aliceBothGroupShares;
 
-console.log(`\n* Shares used by Alice alone for restoring the master secret (total of ${neededShares.length} member-shares):`);
-printShares(neededShares);
-recover(neededShares, passphrase);
+console.log(`\n* Shares used by Alice alone for restoring the master secret (total of ${requiredGroupShares.length} member-shares):`);
+printShares(requiredGroupShares);
+recover(requiredGroupShares, passphrase);
 
 /*
  * Example of Case 2
@@ -77,11 +80,11 @@ friendGroupShares = slip.fromPath('r/2/2').mnemonics
   .concat(slip.fromPath('r/2/3').mnemonics)
   .concat(slip.fromPath('r/2/4').mnemonics);
 
-neededShares = aliceSecondGroupShare.concat(friendGroupShares);
+requiredGroupShares = aliceSecondGroupShare.concat(friendGroupShares);
 
-console.log(`\n* Shares used by Alice + 3 friends for restoring the master secret (total of ${neededShares.length} member-shares):`);
-printShares(neededShares);
-recover(neededShares, passphrase);
+console.log(`\n* Shares used by Alice + 3 friends for restoring the master secret (total of ${requiredGroupShares.length} member-shares):`);
+printShares(requiredGroupShares);
+recover(requiredGroupShares, passphrase);
 
 
 /*
@@ -94,11 +97,11 @@ aliceFirstGroupShare = slip.fromPath('r/0/0').mnemonics;
 familyGroupShares = slip.fromPath('r/3/1').mnemonics
   .concat(slip.fromPath('r/3/2').mnemonics);
 
-neededShares = aliceFirstGroupShare.concat(familyGroupShares);
+requiredGroupShares = aliceFirstGroupShare.concat(familyGroupShares);
 
-console.log(`\n* Shares used by Alice + 2 family members for restoring the master secret (total of ${neededShares.length} member-shares):`);
-printShares(neededShares);
-recover(neededShares, passphrase);
+console.log(`\n* Shares used by Alice + 2 family members for restoring the master secret (total of ${requiredGroupShares.length} member-shares):`);
+printShares(requiredGroupShares);
+recover(requiredGroupShares, passphrase);
 
 /*
  * Example of Case 4
@@ -112,8 +115,8 @@ friendGroupShares = slip.fromPath('r/2/2').mnemonics
 familyGroupShares = slip.fromPath('r/3/1').mnemonics
   .concat(slip.fromPath('r/3/2').mnemonics);
 
-neededShares = friendGroupShares.concat(familyGroupShares);
+requiredGroupShares = friendGroupShares.concat(familyGroupShares);
 
-console.log(`\n* Shares used by 3 friends + 2 family members for restoring the master secret (total of ${neededShares.length} member-shares):`);
-printShares(neededShares);
-recover(neededShares, passphrase);
+console.log(`\n* Shares used by 3 friends + 2 family members for restoring the master secret (total of ${requiredGroupShares.length} member-shares):`);
+printShares(requiredGroupShares);
+recover(requiredGroupShares, passphrase);

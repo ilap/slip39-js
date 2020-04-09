@@ -2,7 +2,7 @@ const assert = require('assert');
 const slip39 = require('../src/slip39');
 
 const MASTERSECRET = 'ABCDEFGHIJKLMNOP';
-const MS = MASTERSECRET.encodeHex();
+const MS = MASTERSECRET.slip39EncodeHex();
 const PASSPHRASE = 'TREZOR';
 const ONE_GROUP = [
   [5, 7]
@@ -62,8 +62,8 @@ describe('Basic Tests', () => {
       let description = `Test shuffled combination ${item.join(' ')}.`;
       it(description, () => {
         let shares = item.map((idx) => mnemonics[idx]);
-        assert(MS.decodeHex() === slip39.recoverSecret(shares, PASSPHRASE)
-          .decodeHex());
+        assert(MS.slip39DecodeHex() === slip39.recoverSecret(shares, PASSPHRASE)
+          .slip39DecodeHex());
       });
     });
   });
@@ -73,16 +73,16 @@ describe('Basic Tests', () => {
     let nopwMnemonics = slip15NoPW.fromPath('r/0').mnemonics;
 
     it('should return valid mastersecret when user submits valid passphrse', () => {
-      assert(MS.decodeHex() === slip39.recoverSecret(mnemonics.slice(0, 5), PASSPHRASE)
-        .decodeHex());
+      assert(MS.slip39DecodeHex() === slip39.recoverSecret(mnemonics.slice(0, 5), PASSPHRASE)
+        .slip39DecodeHex());
     });
     it('should NOT return valid mastersecret when user submits invalid passphrse', () => {
-      assert(MS.decodeHex() !== slip39.recoverSecret(mnemonics.slice(0, 5))
-        .decodeHex());
+      assert(MS.slip39DecodeHex() !== slip39.recoverSecret(mnemonics.slice(0, 5))
+        .slip39DecodeHex());
     });
     it('should return valid mastersecret when user does not submit passphrse', () => {
-      assert(MS.decodeHex() === slip39.recoverSecret(nopwMnemonics.slice(0, 5))
-        .decodeHex());
+      assert(MS.slip39DecodeHex() === slip39.recoverSecret(nopwMnemonics.slice(0, 5))
+        .slip39DecodeHex());
     });
   });
 
@@ -96,11 +96,11 @@ describe('Basic Tests', () => {
     });
 
     it('should return valid mastersecret when user apply valid iteration exponent', () => {
-      assert(MS.decodeHex() === slip39.recoverSecret(slip1.fromPath('r/0').mnemonics)
-        .decodeHex());
+      assert(MS.slip39DecodeHex() === slip39.recoverSecret(slip1.fromPath('r/0').mnemonics)
+        .slip39DecodeHex());
 
-      assert(MS.decodeHex() === slip39.recoverSecret(slip2.fromPath('r/0').mnemonics)
-        .decodeHex());
+      assert(MS.slip39DecodeHex() === slip39.recoverSecret(slip2.fromPath('r/0').mnemonics)
+        .slip39DecodeHex());
     });
     /**
      * assert.throws(() => x.y.z);
@@ -127,25 +127,35 @@ describe('Basic Tests', () => {
 describe('Group Sharing Tests', () => {
   describe('Test all valid combinations of mnemonics', () => {
     const groups = [
-      [3, 5],
-      [3, 3],
-      [2, 5],
-      [1, 1]
+      [3, 5, 'Group 0'],
+      [3, 3, 'Group 1'],
+      [2, 5, 'Group 2'],
+      [1, 1, 'Group 3']
     ];
     const slip = slip39.fromArray(MS, {
       threshold: 2,
-      groups: groups
+      groups: groups,
+      title: 'Trezor one SSSS'
     });
 
     const group2Mnemonics = slip.fromPath('r/2').mnemonics;
     const group3Mnemonic = slip.fromPath('r/3').mnemonics[0];
 
+    it('Should include overall split title', () => {
+      assert.equal(slip.fromPath('r').description, 'Trezor one SSSS');
+    });
+    it('Should include group descriptions', () => {
+      assert.equal(slip.fromPath('r/0').description, 'Group 0');
+      assert.equal(slip.fromPath('r/1').description, 'Group 1');
+      assert.equal(slip.fromPath('r/2').description, 'Group 2');
+      assert.equal(slip.fromPath('r/3').description, 'Group 3');
+    });
     it('Should return the valid master secret when it tested with minimal sets of mnemonics.', () => {
       const mnemonics = group2Mnemonics.filter((_, index) => {
         return index === 0 || index === 2;
       }).concat(group3Mnemonic);
 
-      assert(MS.decodeHex() === slip39.recoverSecret(mnemonics).decodeHex());
+      assert(MS.slip39DecodeHex() === slip39.recoverSecret(mnemonics).slip39DecodeHex());
     });
     it('TODO: Should NOT return the valid master secret when one complete group and one incomplete group out of two groups required', () => {
       assert(true);

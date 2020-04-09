@@ -3,13 +3,16 @@ const slipHelper = require('./slip39_helper.js');
 
 const MAX_DEPTH = 2;
 
-//
-// Slip39Node
-//
+/**
+ * Slip39Node
+ * For root node, description refers to the whole set's title e.g. "Hardware wallet X SSSS shares"
+ * For children nodes, description refers to the group e.g. "Family group: mom, dad, sister, wife"
+ */
 class Slip39Node {
-  constructor(index = 0, mnemonic = '', children = []) {
-    this.mnemonic = mnemonic;
+  constructor(index = 0, description = '', mnemonic = '', children = []) {
     this.index = index;
+    this.description = description;
+    this.mnemonic = mnemonic;
     this.children = children;
   }
 
@@ -45,9 +48,10 @@ class Slip39 {
     passphrase = '',
     threshold = 1,
     groups = [
-      [1, 1]
+      [1, 1, 'Default 1-of-1 group share']
     ],
-    iterationExponent = 0
+    iterationExponent = 0,
+    title = 'My default slip39 shares'
   } = {}) {
     if (masterSecret.length * 8 < slipHelper.MIN_ENTROPY_BITS) {
       throw Error(`The length of the master secret (${masterSecret.length} bytes) must be at least ${slipHelper.bitsToBytes(slipHelper.MIN_ENTROPY_BITS)} bytes.`);
@@ -80,13 +84,13 @@ class Slip39 {
       groupThreshold: threshold
     });
 
-    const ems = slipHelper.crypt(
+    const encryptedMasterSecret = slipHelper.crypt(
       masterSecret, passphrase, iterationExponent, slip.identifier);
 
     const root = slip.buildRecursive(
-      new Slip39Node(),
+      new Slip39Node(0, title),
       groups,
-      ems,
+      encryptedMasterSecret,
       threshold
     );
 
@@ -94,14 +98,14 @@ class Slip39 {
     return slip;
   }
 
-  buildRecursive(current, nodes, secret, threshold, index) {
+  buildRecursive(currentNode, nodes, secret, threshold, index) {
     // It means it's a leaf.
     if (nodes.length === 0) {
       const mnemonic = slipHelper.encodeMnemonic(this.identifier, this.iterationExponent, index,
-        this.groupThreshold, this.groupCount, current.index, threshold, secret);
+        this.groupThreshold, this.groupCount, currentNode.index, threshold, secret);
 
-      current.mnemonic = mnemonic;
-      return current;
+      currentNode.mnemonic = mnemonic;
+      return currentNode;
     }
 
     const secretShares = slipHelper.splitSecret(threshold, nodes.length, secret);
@@ -113,23 +117,25 @@ class Slip39 {
       const n = item[0];
       // m=members
       const m = item[1];
+      // d=description
+      const d = item[2] || '';
 
-      // Genereate leaf members, means their `m` is `0`
-      const members = Array().generate(m, () => [n, 0]);
+      // Generate leaf members, means their `m` is `0`
+      const members = Array().slip39Generate(m, () => [n, 0, d]);
 
-      const node = new Slip39Node(idx);
+      const node = new Slip39Node(idx, d);
       const branch = this.buildRecursive(
         node,
         members,
         secretShares[idx],
         n,
-        current.index);
+        currentNode.index);
 
       children = children.concat(branch);
       idx = idx + 1;
     });
-    current.children = children;
-    return current;
+    currentNode.children = children;
+    return currentNode;
   }
 
   static recoverSecret(mnemonics, passphrase) {
