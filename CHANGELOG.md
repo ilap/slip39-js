@@ -18,3 +18,8 @@ v0.1.5
 v0.1.6
 * Fixed ilap/slip39-js#12
 * Some cosmetic fixes
+
+v0.1.7
+* Merge pull requests from different contributors
+* Fixed ilap/slip39-js#14
+* Fixed ilap/slip39-js#18
