@@ -80,7 +80,7 @@ describe('Basic Tests', () => {
       assert(MS.slip39DecodeHex() !== slip39.recoverSecret(mnemonics.slice(0, 5))
         .slip39DecodeHex());
     });
-    it('should return valid mastersecret when user does not submit passphrse', () => {
+    it('should return valid mastersecret when user does not submit passphrase', () => {
       assert(MS.slip39DecodeHex() === slip39.recoverSecret(nopwMnemonics.slice(0, 5))
         .slip39DecodeHex());
     });
