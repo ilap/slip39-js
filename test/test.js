@@ -72,7 +72,7 @@ describe('Basic Tests', () => {
     let mnemonics = slip15.fromPath('r/0').mnemonics;
     let nopwMnemonics = slip15NoPW.fromPath('r/0').mnemonics;
 
-    it('should return valid mastersecret when user submits valid passphrse', () => {
+    it('should return valid mastersecret when user submits valid passphrase', () => {
       assert(MS.slip39DecodeHex() === slip39.recoverSecret(mnemonics.slice(0, 5), PASSPHRASE)
         .slip39DecodeHex());
     });
