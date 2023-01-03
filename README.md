@@ -70,8 +70,7 @@ const groups = [
   [2, 6]
 ];
 
-const slip = slip39.fromArray({
-  masterSecret: masterSecret,
+const slip = slip39.fromArray(masterSecret, {
   passphrase: passphrase,
   threshold: threshold,
   groups: groups
