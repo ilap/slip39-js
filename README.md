@@ -18,20 +18,20 @@ This project is still in early development phase. Use it at your own risk.
  The degree (d) and the level (l) of the tree are 16 and 3 respectively,
  which means that max d^(l-1), i.e. 16^2, leaf nodes (M) can be in a complete tree (or forest).
 
- The first level (l=1) node of the tree is the the root (R), the level 2 ones are the `SSS` groups (Gs or group nodes) e.g. `[G0, ..., Gd]`.
+ The first level (l=1) node of the tree is the root (R), the level 2 ones are the `SSS` groups (Gs or group nodes) e.g. `[G0, ..., Gd]`.
 
- The last, the third, level nodes are the only leafs (M, group members) which contains the generated mnemonics.
+ The last, the third, level nodes are the only leaves (M, group members) which contain the generated mnemonics.
 
  Every node has two values:
   - the N and
   - M i.e. n(N,M).
 
- Whihc means, that N (`threshold`) number of M children are required to reconstruct the node's secret.
+ Which means, that N (`threshold`) number of M children are required to reconstruct the node's secret.
 
 ## Format
 
 The tree's human friendly array representation only uses the group (l=2) nodes as arrays.
-For example. : ``` [[1,1], [1,1], [3,5], [2,6]]```
+For example: ``` [[1,1], [1,1], [3,5], [2,6]]```
 The group's first parameter is the `N` (group threshold) while the second is the `M`, the number of members in the group. See, and example in [Using](#Using).
 
 ## Installing
