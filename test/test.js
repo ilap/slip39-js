@@ -322,14 +322,15 @@ describe('Mnemonic Validation', () => {
   });
 });
 
-function itTestArray(t, g, gs) {
+function itTestArray(t, g, gs, e) {
   it(
-    `recover master secret for ${t} shares (threshold=${t}) of ${g} '[1, 1,]' groups",`,
+    `recover master secret for ${t} shares (threshold=${t}) of ${g} '[1, 1,]' groups with extendable backup flag set to ${e}",`,
     () => {
       let slip = slip39.fromArray(MS, {
         groups: gs.slice(0, g),
         passphrase: PASSPHRASE,
-        threshold: t
+        threshold: t,
+        extendableBackupFlag: e
       });
 
       let mnemonics = slip.fromPath('r').mnemonics.slice(0, t);
@@ -345,9 +346,11 @@ describe('Groups test (T=1, N=1 e.g. [1,1]) - ', () => {
   let totalGroups = 16;
   let groups = Array.from(Array(totalGroups), () => [1, 1]);
 
-  for (group = 1; group <= totalGroups; group++) {
-    for (threshold = 1; threshold <= group; threshold++) {
-      itTestArray(threshold, group, groups);
+  for (extendableBackupFlag = 0; extendableBackupFlag <= 1; extendableBackupFlag++) {
+    for (group = 1; group <= totalGroups; group++) {
+      for (threshold = 1; threshold <= group; threshold++) {
+        itTestArray(threshold, group, groups, extendableBackupFlag);
+      }
     }
   }
 });
