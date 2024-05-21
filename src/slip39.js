@@ -34,7 +34,7 @@ class Slip39Node {
 class Slip39 {
   constructor({
     iterationExponent = 0,
-    extendableBackupFlag,
+    extendableBackupFlag = true,
     identifier,
     groupCount,
     groupThreshold
