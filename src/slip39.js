@@ -34,11 +34,13 @@ class Slip39Node {
 class Slip39 {
   constructor({
     iterationExponent = 0,
+    extendableBackupFlag = true,
     identifier,
     groupCount,
     groupThreshold
   } = {}) {
     this.iterationExponent = iterationExponent;
+    this.extendableBackupFlag = extendableBackupFlag;
     this.identifier = identifier;
     this.groupCount = groupCount;
     this.groupThreshold = groupThreshold;
@@ -51,6 +53,7 @@ class Slip39 {
       [1, 1, 'Default 1-of-1 group share']
     ],
     iterationExponent = 0,
+    extendableBackupFlag = 1,
     title = 'My default slip39 shares'
   } = {}) {
     if (masterSecret.length * 8 < slipHelper.MIN_ENTROPY_BITS) {
@@ -79,13 +82,14 @@ class Slip39 {
 
     const slip = new Slip39({
       iterationExponent: iterationExponent,
+      extendableBackupFlag: extendableBackupFlag,
       identifier: identifier,
       groupCount: groups.length,
       groupThreshold: threshold
     });
 
     const encryptedMasterSecret = slipHelper.crypt(
-      masterSecret, passphrase, iterationExponent, slip.identifier);
+      masterSecret, passphrase, iterationExponent, slip.identifier, extendableBackupFlag);
 
     const root = slip.buildRecursive(
       new Slip39Node(0, title),
@@ -101,7 +105,8 @@ class Slip39 {
   buildRecursive(currentNode, nodes, secret, threshold, index) {
     // It means it's a leaf.
     if (nodes.length === 0) {
-      const mnemonic = slipHelper.encodeMnemonic(this.identifier, this.iterationExponent, index,
+      const extendableBackupFlag = 0;
+      const mnemonic = slipHelper.encodeMnemonic(this.identifier, this.extendableBackupFlag, this.iterationExponent, index,
         this.groupThreshold, this.groupCount, currentNode.index, threshold, secret);
 
       currentNode.mnemonic = mnemonic;

@@ -14,11 +14,14 @@ const RADIX_BITS = 10;
 const ID_BITS_LENGTH = 15;
 
 // The length of the iteration exponent in bits.
-const ITERATION_EXP_BITS_LENGTH = 5;
+const ITERATION_EXP_BITS_LENGTH = 4;
 
-// The length of the random identifier and iteration exponent in words.
+// The length of the extendable backup flag in bits.
+const EXTENDABLE_BACKUP_FLAG_BITS_LENGTH = 1;
+
+// The length of the random identifier, extendable backup flag and iteration exponent in words.
 const ITERATION_EXP_WORDS_LENGTH =
-  parseInt((ID_BITS_LENGTH + ITERATION_EXP_BITS_LENGTH + RADIX_BITS - 1) / RADIX_BITS, 10);
+  parseInt((ID_BITS_LENGTH + EXTENDABLE_BACKUP_FLAG_BITS_LENGTH + ITERATION_EXP_BITS_LENGTH + RADIX_BITS - 1) / RADIX_BITS, 10);
 
 // The maximum iteration exponent
 const MAX_ITERATION_EXP = Math.pow(2, ITERATION_EXP_BITS_LENGTH);
@@ -32,8 +35,11 @@ const CHECKSUM_WORDS_LENGTH = 3;
 // The length of the digest of the shared secret in bytes.
 const DIGEST_LENGTH = 4;
 
-// The customization string used in the RS1024 checksum and in the PBKDF2 salt.
-const SALT_STRING = 'shamir';
+// The customization string used in the RS1024 checksum and in the PBKDF2 salt when the extendable backup flag is not set.
+const CUSTOMIZATION_STRING_NON_EXTENDABLE = 'shamir';
+
+// The customization string used in RS1024 checksum when the extendable backup flag is set.
+const CUSTOMIZATION_STRING_EXTENDABLE = 'shamir_extendable';
 
 // The minimum allowed entropy of the master secret.
 const MIN_ENTROPY_BITS = 128;
@@ -168,6 +174,7 @@ function roundFunction(round, passphrase, exp, salt, secret) {
 
 function crypt(masterSecret, passphrase, iterationExponent,
   identifier,
+  extendableBackupFlag,
   encrypt = true) {
   // Iteration exponent validated here.
   if (iterationExponent < 0 || iterationExponent > MAX_ITERATION_EXP) {
@@ -179,7 +186,7 @@ function crypt(masterSecret, passphrase, iterationExponent,
 
   const pwd = passphrase.slip39EncodeHex();
 
-  const salt = getSalt(identifier);
+  const salt = getSalt(identifier, extendableBackupFlag);
 
   let range = Array().slip39Generate(ROUND_COUNT);
   range = encrypt ? range : range.reverse();
@@ -265,9 +272,13 @@ function xor(a, b) {
   return Array().slip39Generate(a.length, (i) => a[i] ^ b[i]);
 }
 
-function getSalt(identifier) {
-  const salt = SALT_STRING.slip39EncodeHex();
-  return salt.concat(identifier);
+function getSalt(identifier, extendableBackupFlag) {
+  if (extendableBackupFlag) {
+    return [];
+  } else {
+    const salt = CUSTOMIZATION_STRING_NON_EXTENDABLE.slip39EncodeHex();
+    return salt.concat(identifier);
+  }
 }
 
 function interpolate(shares, x) {
@@ -350,8 +361,12 @@ function rs1024Polymod(data) {
   return chk;
 }
 
-function rs1024CreateChecksum(data) {
-  const values = SALT_STRING.slip39EncodeHex()
+function get_customization_string(extendableBackupFlag) {
+  return extendableBackupFlag ? CUSTOMIZATION_STRING_EXTENDABLE : CUSTOMIZATION_STRING_NON_EXTENDABLE;
+}
+
+function rs1024CreateChecksum(data, extendableBackupFlag) {
+  const values = get_customization_string(extendableBackupFlag).slip39EncodeHex()
     .concat(data)
     .concat(Array().slip39Generate(CHECKSUM_WORDS_LENGTH, () => 0));
   const polymod = rs1024Polymod(values) ^ 1;
@@ -361,8 +376,8 @@ function rs1024CreateChecksum(data) {
   return result;
 }
 
-function rs1024VerifyChecksum(data) {
-  return rs1024Polymod(SALT_STRING.slip39EncodeHex().concat(data)) === 1;
+function rs1024VerifyChecksum(data, extendableBackupFlag) {
+  return rs1024Polymod(get_customization_string(extendableBackupFlag).slip39EncodeHex().concat(data)) === 1;
 }
 
 //
@@ -441,6 +456,7 @@ function combineMnemonics(mnemonics, passphrase = '') {
 
   const decoded = decodeMnemonics(mnemonics);
   const identifier = decoded.identifier;
+  const extendableBackupFlag = decoded.extendableBackupFlag;
   const iterationExponent = decoded.iterationExponent;
   const groupThreshold = decoded.groupThreshold;
   const groupCount = decoded.groupCount;
@@ -461,6 +477,7 @@ function combineMnemonics(mnemonics, passphrase = '') {
     if (shares.size !== threshold) {
       const prefix = groupPrefix(
         identifier,
+        extendableBackupFlag,
         iterationExponent,
         groupIndex,
         groupThreshold,
@@ -475,7 +492,7 @@ function combineMnemonics(mnemonics, passphrase = '') {
 
   const ems = recoverSecret(groupThreshold, allShares);
   const id = intToIndices(BigInt(identifier), ITERATION_EXP_WORDS_LENGTH, 8);
-  const ms = crypt(ems, passphrase, iterationExponent, id, false);
+  const ms = crypt(ems, passphrase, iterationExponent, id, extendableBackupFlag, false);
 
   return ms;
 }
@@ -485,6 +502,7 @@ function decodeMnemonics(mnemonics) {
     throw new Error('Mnemonics should be an array of strings');
   }
   const identifiers = new Set();
+  const extendableBackupFlags = new Set();
   const iterationExponents = new Set();
   const groupThresholds = new Set();
   const groupCounts = new Set();
@@ -494,6 +512,7 @@ function decodeMnemonics(mnemonics) {
     const decoded = decodeMnemonic(mnemonic);
 
     identifiers.add(decoded.identifier);
+    extendableBackupFlags.add(decoded.extendableBackupFlag);
     iterationExponents.add(decoded.iterationExponent);
     const groupIndex = decoded.groupIndex;
     groupThresholds.add(decoded.groupThreshold);
@@ -512,7 +531,7 @@ function decodeMnemonics(mnemonics) {
     groups.set(groupIndex, group);
   });
 
-  if (identifiers.size !== 1 || iterationExponents.size !== 1) {
+  if (identifiers.size !== 1 || extendableBackupFlags.size !== 1 || iterationExponents.size !== 1) {
     throw new Error(`Invalid set of mnemonics. All mnemonics must begin with the same ${ITERATION_EXP_WORDS_LENGTH} words.`);
   }
 
@@ -526,6 +545,7 @@ function decodeMnemonics(mnemonics) {
 
   return {
     identifier: identifiers.values().next().value,
+    extendableBackupFlag: extendableBackupFlags.values().next().value,
     iterationExponent: iterationExponents.values().next().value,
     groupThreshold: groupThresholds.values().next().value,
     groupCount: groupCounts.values().next().value,
@@ -548,14 +568,15 @@ function decodeMnemonic(mnemonic) {
     throw new Error('Invalid mnemonic length.');
   }
 
-  if (!rs1024VerifyChecksum(data)) {
+  const idExpExtInt = parseInt(intFromIndices(data.slice(0, ITERATION_EXP_WORDS_LENGTH)), 10);
+  const identifier = idExpExtInt >> (ITERATION_EXP_BITS_LENGTH + EXTENDABLE_BACKUP_FLAG_BITS_LENGTH);
+  const extendableBackupFlag = (idExpExtInt >> ITERATION_EXP_BITS_LENGTH) & ((1 << EXTENDABLE_BACKUP_FLAG_BITS_LENGTH) - 1);
+  const iterationExponent = idExpExtInt & ((1 << ITERATION_EXP_BITS_LENGTH) - 1);
+
+  if (!rs1024VerifyChecksum(data, extendableBackupFlag)) {
     throw new Error('Invalid mnemonic checksum');
   }
 
-  const idExpInt =
-    parseInt(intFromIndices(data.slice(0, ITERATION_EXP_WORDS_LENGTH)), 10);
-  const identifier = idExpInt >> ITERATION_EXP_BITS_LENGTH;
-  const iterationExponent = idExpInt & (1 << ITERATION_EXP_BITS_LENGTH) - 1;
   const tmp = intFromIndices(
     data.slice(ITERATION_EXP_WORDS_LENGTH, ITERATION_EXP_WORDS_LENGTH + 2));
 
@@ -582,6 +603,7 @@ function decodeMnemonic(mnemonic) {
 
     return {
       identifier: identifier,
+      extendableBackupFlag: extendableBackupFlag,
       iterationExponent: iterationExponent,
       groupIndex: groupIndex,
       groupThreshold: groupThreshold + 1,
@@ -605,9 +627,9 @@ function validateMnemonic(mnemonic) {
 }
 
 function groupPrefix(
-  identifier, iterationExponent, groupIndex, groupThreshold, groupCount) {
+  identifier, extendableBackupFlag, iterationExponent, groupIndex, groupThreshold, groupCount) {
   const idExpInt = BigInt(
-    (identifier << ITERATION_EXP_BITS_LENGTH) + iterationExponent);
+    (identifier << (ITERATION_EXP_BITS_LENGTH + EXTENDABLE_BACKUP_FLAG_BITS_LENGTH)) + (extendableBackupFlag << ITERATION_EXP_BITS_LENGTH) + iterationExponent);
 
   const indc = intToIndices(idExpInt, ITERATION_EXP_WORDS_LENGTH, RADIX_BITS);
 
@@ -634,6 +656,7 @@ function listsAreEqual(a, b) {
 //
 function encodeMnemonic(
   identifier,
+  extendableBackupFlag,
   iterationExponent,
   groupIndex,
   groupThreshold,
@@ -649,7 +672,7 @@ function encodeMnemonic(
   let newIdentifier = parseInt(decodeBigInt(identifier), 10);
 
   const gp = groupPrefix(
-    newIdentifier, iterationExponent, groupIndex, groupThreshold, groupCount);
+    newIdentifier, extendableBackupFlag, iterationExponent, groupIndex, groupThreshold, groupCount);
   const tp = intToIndices(valueInt, valueWordCount, RADIX_BITS);
 
   const calc = ((groupCount - 1 & 3) << 8) +
@@ -659,7 +682,7 @@ function encodeMnemonic(
   gp.push(calc);
   const shareData = gp.concat(tp);
 
-  const checksum = rs1024CreateChecksum(shareData);
+  const checksum = rs1024CreateChecksum(shareData, extendableBackupFlag);
 
   return mnemonicFromIndices(shareData.concat(checksum));
 }
