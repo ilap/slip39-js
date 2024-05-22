@@ -1,5 +1,5 @@
 /* eslint-disable radix */
-const slipHelper = require('./slip39_helper.js');
+const slipHelper = require("./slip39_helper.js");
 
 const MAX_DEPTH = 2;
 
@@ -9,7 +9,7 @@ const MAX_DEPTH = 2;
  * For children nodes, description refers to the group e.g. "Family group: mom, dad, sister, wife"
  */
 class Slip39Node {
-  constructor(index = 0, description = '', mnemonic = '', children = []) {
+  constructor(index = 0, description = "", mnemonic = "", children = []) {
     this.index = index;
     this.description = description;
     this.mnemonic = mnemonic;
@@ -34,10 +34,10 @@ class Slip39Node {
 class Slip39 {
   constructor({
     iterationExponent = 0,
-    extendableBackupFlag = true,
+    extendableBackupFlag = 0,
     identifier,
     groupCount,
-    groupThreshold
+    groupThreshold,
   } = {}) {
     this.iterationExponent = iterationExponent;
     this.extendableBackupFlag = extendableBackupFlag;
@@ -46,35 +46,46 @@ class Slip39 {
     this.groupThreshold = groupThreshold;
   }
 
-  static fromArray(masterSecret, {
-    passphrase = '',
-    threshold = 1,
-    groups = [
-      [1, 1, 'Default 1-of-1 group share']
-    ],
-    iterationExponent = 0,
-    extendableBackupFlag = 1,
-    title = 'My default slip39 shares'
-  } = {}) {
+  static fromArray(
+    masterSecret,
+    {
+      passphrase = "",
+      threshold = 1,
+      groups = [[1, 1, "Default 1-of-1 group share"]],
+      iterationExponent = 0,
+      extendableBackupFlag = 1,
+      title = "My default slip39 shares",
+    } = {},
+  ) {
     if (masterSecret.length * 8 < slipHelper.MIN_ENTROPY_BITS) {
-      throw Error(`The length of the master secret (${masterSecret.length} bytes) must be at least ${slipHelper.bitsToBytes(slipHelper.MIN_ENTROPY_BITS)} bytes.`);
+      throw Error(
+        `The length of the master secret (${masterSecret.length} bytes) must be at least ${slipHelper.bitsToBytes(slipHelper.MIN_ENTROPY_BITS)} bytes.`,
+      );
     }
 
     if (masterSecret.length % 2 !== 0) {
-      throw Error('The length of the master secret in bytes must be an even number.');
+      throw Error(
+        "The length of the master secret in bytes must be an even number.",
+      );
     }
 
     if (!/^[\x20-\x7E]*$/.test(passphrase)) {
-      throw Error('The passphrase must contain only printable ASCII characters (code points 32-126).');
+      throw Error(
+        "The passphrase must contain only printable ASCII characters (code points 32-126).",
+      );
     }
 
     if (threshold > groups.length) {
-      throw Error(`The requested group threshold (${threshold}) must not exceed the number of groups (${groups.length}).`);
+      throw Error(
+        `The requested group threshold (${threshold}) must not exceed the number of groups (${groups.length}).`,
+      );
     }
 
     groups.forEach((item) => {
       if (item[0] === 1 && item[1] > 1) {
-        throw Error(`Creating multiple member shares with member threshold 1 is not allowed. Use 1-of-1 member sharing instead. ${groups.join()}`);
+        throw Error(
+          `Creating multiple member shares with member threshold 1 is not allowed. Use 1-of-1 member sharing instead. ${groups.join()}`,
+        );
       }
     });
 
@@ -85,17 +96,22 @@ class Slip39 {
       extendableBackupFlag: extendableBackupFlag,
       identifier: identifier,
       groupCount: groups.length,
-      groupThreshold: threshold
+      groupThreshold: threshold,
     });
 
     const encryptedMasterSecret = slipHelper.crypt(
-      masterSecret, passphrase, iterationExponent, slip.identifier, extendableBackupFlag);
+      masterSecret,
+      passphrase,
+      iterationExponent,
+      slip.identifier,
+      extendableBackupFlag,
+    );
 
     const root = slip.buildRecursive(
       new Slip39Node(0, title),
       groups,
       encryptedMasterSecret,
-      threshold
+      threshold,
     );
 
     slip.root = root;
@@ -105,15 +121,27 @@ class Slip39 {
   buildRecursive(currentNode, nodes, secret, threshold, index) {
     // It means it's a leaf.
     if (nodes.length === 0) {
-      const extendableBackupFlag = 0;
-      const mnemonic = slipHelper.encodeMnemonic(this.identifier, this.extendableBackupFlag, this.iterationExponent, index,
-        this.groupThreshold, this.groupCount, currentNode.index, threshold, secret);
+      const mnemonic = slipHelper.encodeMnemonic(
+        this.identifier,
+        this.extendableBackupFlag,
+        this.iterationExponent,
+        index,
+        this.groupThreshold,
+        this.groupCount,
+        currentNode.index,
+        threshold,
+        secret,
+      );
 
       currentNode.mnemonic = mnemonic;
       return currentNode;
     }
 
-    const secretShares = slipHelper.splitSecret(threshold, nodes.length, secret);
+    const secretShares = slipHelper.splitSecret(
+      threshold,
+      nodes.length,
+      secret,
+    );
     let children = [];
     let idx = 0;
 
@@ -123,7 +151,7 @@ class Slip39 {
       // m=members
       const m = item[1];
       // d=description
-      const d = item[2] || '';
+      const d = item[2] || "";
 
       // Generate leaf members, means their `m` is `0`
       const members = Array().slip39Generate(m, () => [n, 0, d]);
@@ -134,7 +162,8 @@ class Slip39 {
         members,
         secretShares[idx],
         n,
-        currentNode.index);
+        currentNode.index,
+      );
 
       children = children.concat(branch);
       idx = idx + 1;
@@ -156,14 +185,16 @@ class Slip39 {
 
     const children = this.parseChildren(path);
 
-    if (typeof children === 'undefined' || children.length === 0) {
+    if (typeof children === "undefined" || children.length === 0) {
       return this.root;
     }
 
     return children.reduce((prev, childNumber) => {
       let childrenLen = prev.children.length;
       if (childNumber >= childrenLen) {
-        throw new Error(`The path index (${childNumber}) exceeds the children index (${childrenLen - 1}).`);
+        throw new Error(
+          `The path index (${childNumber}) exceeds the children index (${childrenLen - 1}).`,
+        );
       }
 
       return prev.children[childNumber];
@@ -175,15 +206,17 @@ class Slip39 {
       throw new Error('Expected valid path e.g. "r/0/0".');
     }
 
-    const depth = path.split('/');
+    const depth = path.split("/");
     const pathLength = depth.length - 1;
     if (pathLength > MAX_DEPTH) {
-      throw new Error(`Path\'s (${path}) max depth (${MAX_DEPTH}) is exceeded (${pathLength}).`);
+      throw new Error(
+        `Path\'s (${path}) max depth (${MAX_DEPTH}) is exceeded (${pathLength}).`,
+      );
     }
   }
 
   parseChildren(path) {
-    const splitted = path.split('/').slice(1);
+    const splitted = path.split("/").slice(1);
 
     const result = splitted.map((pathFragment) => {
       return parseInt(pathFragment);

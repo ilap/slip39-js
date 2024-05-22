@@ -2,7 +2,6 @@
 
 [![npm](https://img.shields.io/npm/v/slip39.svg)](https://www.npmjs.org/package/slip39)
 
-
 The javascript implementation of the [SLIP39](https://github.com/satoshilabs/slips/blob/master/slip-0039.md) for Shamir's Secret-Sharing for Mnemonic Codes.
 
 The code based on my [Dart implementation of SLIP-0039](https://github.com/ilap/slip39-dart/).
@@ -13,25 +12,26 @@ This project is still in early development phase. Use it at your own risk.
 
 ## Description
 
- This SLIP39 implementation uses a 3 level height (l=3) of a 16 degree (d=16) tree (T), which is represented as an array of the level two nodes (groups, G).
+This SLIP39 implementation uses a 3 level height (l=3) of a 16 degree (d=16) tree (T), which is represented as an array of the level two nodes (groups, G).
 
- The degree (d) and the level (l) of the tree are 16 and 3 respectively,
- which means that max d^(l-1), i.e. 16^2, leaf nodes (M) can be in a complete tree (or forest).
+The degree (d) and the level (l) of the tree are 16 and 3 respectively,
+which means that max d^(l-1), i.e. 16^2, leaf nodes (M) can be in a complete tree (or forest).
 
- The first level (l=1) node of the tree is the root (R), the level 2 ones are the `SSS` groups (Gs or group nodes) e.g. `[G0, ..., Gd]`.
+The first level (l=1) node of the tree is the root (R), the level 2 ones are the `SSS` groups (Gs or group nodes) e.g. `[G0, ..., Gd]`.
 
- The last, the third, level nodes are the only leaves (M, group members) which contain the generated mnemonics.
+The last, the third, level nodes are the only leaves (M, group members) which contain the generated mnemonics.
 
- Every node has two values:
-  - the N and
-  - M i.e. n(N,M).
+Every node has two values:
 
- Which means, that N (`threshold`) number of M children are required to reconstruct the node's secret.
+- the N and
+- M i.e. n(N,M).
+
+Which means, that N (`threshold`) number of M children are required to reconstruct the node's secret.
 
 ## Format
 
 The tree's human friendly array representation only uses the group (l=2) nodes as arrays.
-For example: ``` [[1,1], [1,1], [3,5], [2,6]]```
+For example: ` [[1,1], [1,1], [3,5], [2,6]]`
 The group's first parameter is the `N` (group threshold) while the second is the `M`, the number of members in the group. See, and example in [Using](#Using).
 
 ## Installing
@@ -42,15 +42,16 @@ npm install slip39
 ```
 
 ## Using
+
 See `example/main.js`
 
-  ``` javascript
-const slip39 = require('../src/slip39.js');
-const assert = require('assert');
+```javascript
+const slip39 = require("../src/slip39.js");
+const assert = require("assert");
 // threshold (N) number of group shares required to reconstruct the master secret.
 const threshold = 2;
-const masterSecret = 'ABCDEFGHIJKLMNOP'.slip39EncodeHex();
-const passphrase = 'TREZOR';
+const masterSecret = "ABCDEFGHIJKLMNOP".slip39EncodeHex();
+const passphrase = "TREZOR";
 
 /**
  * 4 groups shares.
@@ -67,36 +68,37 @@ const groups = [
   // 3 of 5 Friends' shares are required to reconstruct this group share
   [3, 5],
   // 2 of 6 Family's shares are required to reconstruct this group share
-  [2, 6]
+  [2, 6],
 ];
 
 const slip = slip39.fromArray(masterSecret, {
   passphrase: passphrase,
   threshold: threshold,
-  groups: groups
+  groups: groups,
 });
 
 // One of Alice's share
-const aliceShare = slip.fromPath('r/0').mnemonics;
+const aliceShare = slip.fromPath("r/0").mnemonics;
 
 // and any two of family's shares.
-const familyShares = slip.fromPath('r/3/1').mnemonics
-  .concat(slip.fromPath('r/3/3').mnemonics);
+const familyShares = slip
+  .fromPath("r/3/1")
+  .mnemonics.concat(slip.fromPath("r/3/3").mnemonics);
 
 const allShares = aliceShare.concat(familyShares);
 
-console.log('Shares used for restoring the master secret:');
+console.log("Shares used for restoring the master secret:");
 allShares.forEach((s) => console.log(s));
 
 const recoveredSecret = slip39.recoverSecret(allShares, passphrase);
-console.log('Master secret: ' + masterSecret.slip39DecodeHex());
-console.log('Recovered one: ' + recoveredSecret.slip39DecodeHex());
+console.log("Master secret: " + masterSecret.slip39DecodeHex());
+console.log("Recovered one: " + recoveredSecret.slip39DecodeHex());
 assert(masterSecret.slip39DecodeHex() === recoveredSecret.slip39DecodeHex());
 ```
 
 ## Testing
 
-``` bash
+```bash
  $ npm install
  $ npm test
 
@@ -199,51 +201,35 @@ assert(masterSecret.slip39DecodeHex() === recoveredSecret.slip39DecodeHex());
 
 ### JSON Representation
 
-``` json
-  {
+```json
+{
   "name": "Slip39",
   "threshold": 2,
   "shares": [
     {
       "name": "My Primary",
       "threshold": 1,
-      "shares": [
-        "Primary"
-      ]
+      "shares": ["Primary"]
     },
     {
       "name": "My Secondary",
       "threshold": 1,
-      "shares": [
-        "Secondary"
-      ]
+      "shares": ["Secondary"]
     },
     {
       "name": "Friends",
       "threshold": 3,
-      "shares": [
-        "Alice",
-        "Bob",
-        "Charlie",
-        "David",
-        "Erin"
-      ]
+      "shares": ["Alice", "Bob", "Charlie", "David", "Erin"]
     },
     {
       "name": "Family",
       "threshold": 2,
-      "shares": [
-        "Adam",
-        "Brenda",
-        "Carol",
-        "Dan",
-        "Edward",
-        "Frank"
-      ]
+      "shares": ["Adam", "Brenda", "Carol", "Dan", "Edward", "Frank"]
     }
   ]
 }
 ```
+
 # LICENSE
 
 CopyRight (c) 2019 Pal Dorogi `"iLap"` <pal.dorogi@gmail.com>

@@ -1,1 +1,1 @@
-module.exports = require('./src/slip39');
+module.exports = require("./src/slip39");
