@@ -1,6 +1,8 @@
-name: Node CI
+name: Publish to NPM server
 
-on: [push]
+on:
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -8,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [18.x]
 
     steps:
       - uses: actions/checkout@v1
@@ -24,3 +26,7 @@ jobs:
           npm test
         env:
           CI: true
+
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

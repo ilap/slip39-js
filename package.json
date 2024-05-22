@@ -10,7 +10,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ilap/slip39-js.git"
+    "url": "git+https://github.com/ilap/slip39-js.git"
   },
   "keywords": [
     "SLIP39",
