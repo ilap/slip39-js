@@ -1885,4 +1885,5 @@ exports = module.exports = {
   combineMnemonics,
   crypt,
   bitsToBytes,
+  WORD_LIST,
 };
